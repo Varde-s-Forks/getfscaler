@@ -22,13 +22,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
-
-      - uses: qoomon/actions--context@v5
-        id: context
-      - name: Determine branch name
-        id: branch-names
-        run: echo "current_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v6
@@ -49,10 +44,18 @@ jobs:
         run: |
           uv sync --locked
 
-      - name: Running ruff
+      - name: Run Ruff
+        id: ruff
+        continue-on-error: true
         run: |
           uv run ruff check .
           uv run ruff format --check --diff
 
-      - name: Running mypy
+      - name: Run mypy
+        id: mypy
+        continue-on-error: true
         run: uv run mypy .
+
+      - name: Fail if either failed
+        if: steps.ruff.outcome == 'failure' || steps.mypy.outcome == 'failure'
+        run: exit 1
