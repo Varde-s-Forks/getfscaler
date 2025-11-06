@@ -40,7 +40,9 @@ jobs:
 
       - name: Fallback
         if: steps.check_tag.outputs.exists == 'true'
-        run: echo "Nothing to see here, move along citizen"
+        run: |
+          echo "Nothing to see here, move along citizen"
+          exit 0
 
       - name: Get context
         uses: qoomon/actions--context@v5
