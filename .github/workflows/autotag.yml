@@ -40,10 +40,14 @@ jobs:
 
       - name: Fallback
         if: steps.check_tag.outputs.exists == 'true'
-        run: |
-          echo "Nothing to see here, move along citizen"
-          exit 0
+        run: echo "Nothing to see here, move along citizen"
 
+  webhook:
+    needs: autotag
+    if: ${{ contains(needs.autotag.result, 'failure') }}
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Get context
         uses: qoomon/actions--context@v5
         id: context
@@ -53,7 +57,6 @@ jobs:
         run: echo "current_branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
       - name: Send Discord webhook (only on failure)
-        if: failure()
         uses: tsickert/discord-webhook@v7.0.0
         with:
           webhook-url: ${{ secrets.WEBHOOK_URL }}
